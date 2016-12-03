@@ -74,6 +74,7 @@ int main(){
 	ifstream myFile ("imp.txt");
 	if(!myFile){
 		cout<<"\nThe file is not present";
+        return 0;
 	}
 	else{
 		while(getline(myFile,line)){
@@ -87,7 +88,7 @@ int main(){
 
 	/* This makes sure that the input from the file is in proper format. Checking additional spaces after ; */
 	string tempLine,defective="",transaction="";
-	bool semicolon=false;
+	bool semicolon=false,space=false;
 	for(int i=0;i<line.length();i++){
 		if(line[i]==';'){
 			semicolon=true;
@@ -95,8 +96,14 @@ int main(){
 
 		}
 			
+
 		else if(line[i]==' '){
-			if(semicolon){
+            if(space){
+                //do nothing
+                space=false;
+            }
+
+			else if(semicolon){
 				//do nothing
 				semicolon=false;
 			}
@@ -104,10 +111,12 @@ int main(){
 				tempLine+=line[i];
 			
 			}
+            space=true;
 		}
 		else{
 			tempLine+=line[i];
 			semicolon=false;
+            space=false;
 		}
 
 
@@ -143,11 +152,12 @@ int main(){
         for(int i=0;i<str.length();i++){
             if(str[i]==' ' || !space){
                 if(str[i]==' '){
+                    space=true;
                     //do nothing
                 }
                 else
                     firstLetter+=str[i];
-                space=true;
+                
             }
             else
                 secondLetter+=str[i];
@@ -157,7 +167,6 @@ int main(){
         unordered_map<string,vector<string> >::iterator findIter;
         findIter=storeValues.find(firstLetter);
         vector<string> value;
-        //cout<<"\nRunning for : "<<firstLetter<<" and "<<secondLetter<<endl;
         if(findIter==storeValues.end()){
         	value.push_back(secondLetter);
         }
@@ -170,7 +179,7 @@ int main(){
             if(allNodes.at(i) == firstLetter)
                 firstWord=true;
             if(allNodes.at(i) == secondLetter)
-                secondLetter=true;
+                secondWord=true;
         }
         if(!firstWord)
             allNodes.push_back(firstLetter);
@@ -178,14 +187,13 @@ int main(){
             allNodes.push_back(secondLetter);
         storeValues[firstLetter]=value;
         first.push_back(firstLetter);
-        myMap[secondLetter]++;
+        myMap[secondLetter]=1;
         index++;
     }
     index++;
     defective=myString.at(index++);
     transaction=myString.at(index);
     unordered_map<string,int>uniqueMap;
-    cout<<"\nThe unique elements are : ";
     for(int i=0;i<first.size();i++){
         unordered_map<string,int>::iterator finding;
         finding=myMap.find(first.at(i));
@@ -195,14 +203,24 @@ int main(){
     }
     uniqueNodes=myMap.size()+first.size();
     unordered_map<string,int>::iterator iter;
-    for(iter=uniqueMap.begin();iter!=uniqueMap.end();++iter)
+    cout<<"\nThe transaction are : ";
+
+    
+
+    for(iter=uniqueMap.begin();iter!=uniqueMap.end();++iter){
         unique.push_back(iter->first);
+        cout<<iter->first<<" ";
+    }
+
+    cout<<endl;
+    cout<<"\nThe defective node is : "<<defective<<endl;
+        
     /* Unique has the unique transaction */
 
 
     /* Now finding the path to the defective node and for the explosion*/
     vector<string>secondNodes;
-    cout<<"\nThe hashmap is"<<endl;
+    cout<<"\nThe User Interface is"<<endl;
     unordered_map<string,vector<string> >:: iterator i;
     for(i=storeValues.begin();i!=storeValues.end();i++){
 
@@ -221,6 +239,8 @@ int main(){
     for(int i=0;i<firstVector.size();i++)
         myQueue.push(firstVector.at(i));
     string parent=transaction;
+
+    cout<<"\nThe paths from transaction to the defective node is \n";
     printAllPaths(transaction,defective,allNodes.size());
     //printAllPaths(defective,transaction,parent);
     /* Finding parth from the transition node to the defective node */
