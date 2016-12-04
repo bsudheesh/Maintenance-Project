@@ -242,6 +242,16 @@ void printAllPaths(string transaction,string defective, int size){
 
 int main(){
 	string line; //stores the input from the file
+    vector<string> unique; //stores all the transactions
+    vector<string> first; //stores all the first nodes
+    //mymap and first are used to find the unique modules.
+    string temp="";
+    string tempLine,defective="",transaction=""; //tempLine stores the line without 
+    unordered_map<string,int>myMap;//myMap stores all the nodes that come in the second Place
+    bool answer=true;
+    int index=0;
+
+
     /*
         Opening file. Return if no file is found.
     */
@@ -254,12 +264,7 @@ int main(){
 	else
 		(getline(myFile,line));
 	
-	
-	/* Adding element to the vector*/
-	string temp="";
-	string tempLine,defective="",transaction=""; //tempLine stores the line without 
-
-	/* This makes sure that the input from the file is in proper format. Checking additional spaces after ; */
+    /* This makes sure that the input from the file is in proper format. Checking additional spaces after ; */
 	
 	bool semicolon=false,space=false;
 	for(int i=0;i<line.length();i++){
@@ -289,8 +294,6 @@ int main(){
 			semicolon=false;
             space=false;
 		}
-
-
 	}
 
 	line="";
@@ -307,14 +310,6 @@ int main(){
 			temp+=line[i];
 	}
 	myString.push_back(temp);
-
-
-	unordered_map<string,int>myMap;//myMap stores all the nodes that come in the second Place
-	bool answer=true;
-    int index=0;
-    vector<string> unique; //stores all the transactions
-    vector<string> first; //stores all the first nodes
-    //mymap and first are used to find the unique modules.
     while(answer){
         string str=myString.at(index);
         bool space=false;
