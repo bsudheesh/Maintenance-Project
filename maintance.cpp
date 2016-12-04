@@ -9,31 +9,35 @@ vector<string> allNodes; //stores all the nodes
 unordered_map<string,int> countNodesForBFS; //checks to see if a node is present for putting *
 
 
-int getElementIndex(string transaction){
+int getElementIndex(vector<string> myVector,string transaction){
     int count=0;
-    for(int i=0;i<allNodes.size();i++){
-        if(allNodes.at(i)==transaction)
+    for(int i=0;i<myVector.size();i++){
+        if(myVector.at(i)==transaction){
             count=i;
+            break;
+        }
     }
     return count;
 
 }
 
-int getIndexToDelete(vector<string> myVector,string str){
-    int index=0;
-    for(int i=0;i<myVector.size();i++){
-        if(myVector.at(i)==str){
-            index=i;
-            break;
 
+int printingIndex(vector<string> myVector,string transaction){
+    int count=-1;
+    for(int i=0;i<myVector.size();i++){
+        if(myVector.at(i)==transaction){
+            count=i;
+            break;
         }
-            
     }
-    return index;
+    return count;
+
 }
 
+
+
 void printAllPathsUtil(string transaction,string defective,bool visited[],vector<string> path,int pathIndex){
-    int count = getElementIndex(transaction);
+    int count = getElementIndex(allNodes,transaction);
     
     visited[count]=true;
     
@@ -53,7 +57,7 @@ void printAllPathsUtil(string transaction,string defective,bool visited[],vector
         if(iter!=storeValues.end()){
             first=iter->second;
             for(int i=0;i<first.size();i++){
-                int getCount=getElementIndex( first.at(i));
+                int getCount=getElementIndex(allNodes, first.at(i));
                 if(!visited[getCount]){
                     printAllPathsUtil(first.at(i),defective,visited,path,pathIndex);
                 }
@@ -64,35 +68,24 @@ void printAllPathsUtil(string transaction,string defective,bool visited[],vector
     visited[count]=false;
 }
 
-void printAllPathsToExplosion(string transaction,string defective,bool visited[],vector<string> &path,int pathIndex,vector<string> myVector){
+void printAllPathsToExplosion(string transaction,string defective,bool visited[],vector<string> &path,vector<string> myVector){
     if(myVector.size()!=0){
-        int count = getElementIndex(transaction);
+        int count = getElementIndex(allNodes,transaction);
         visited[count]=true;
         string tem=transaction;
-        unordered_map<string,int>::iterator it;
-        it=countNodesForBFS.find(transaction);
-        if(it==countNodesForBFS.end()){
-            path.push_back(tem);
-            countNodesForBFS[transaction]++;
-        }
-        else{
-            tem+='*';
-            path.push_back(tem);
-        }
-            
-        pathIndex++;
+        path.push_back(tem);
         vector<string> first;
         unordered_map<string,vector<string> >::iterator iter;
-        int index=getIndexToDelete(myVector,transaction);
+        int index=getElementIndex(myVector,transaction);
         iter=storeValues.find(transaction);
         if(iter!=storeValues.end()){
             first=iter->second;
             myVector.erase(myVector.begin()+index);
             for(int i=0;i<first.size();i++){
-                int getCount=getElementIndex( first.at(i));
+                int getCount=getElementIndex(allNodes, first.at(i));
                 myVector.push_back(first.at(i));
                 if(!visited[getCount]){
-                    printAllPathsToExplosion(first.at(i),defective,visited,path,pathIndex,myVector);
+                    printAllPathsToExplosion(first.at(i),defective,visited,path,myVector);
                 }
             }
         }
@@ -118,9 +111,54 @@ void printAllPaths(string transaction,string defective, int size){
     unordered_map<string,vector<string> >::iterator iter;
     iter=storeValues.find(transaction);
     vector<string> value = iter->second;
-    printAllPathsToExplosion(transaction,defective,visited,path,pathIndex,value);
-    for(int i=0;i<path.size();i++)
-        cout<<path.at(i)<<" ";
+    printAllPathsToExplosion(transaction,defective,visited,path,value);
+
+    //printing in proper order
+    vector<string> seenElement;
+    seenElement.push_back(transaction);
+    string parent=transaction;
+    cout<<transaction<<endl;
+
+
+    int childernSize;
+    int i=1;
+    while(i<path.size()){
+        string temp = path.at(i);
+        vector<string> value;
+        unordered_map<string,vector<string> >::iterator findIter;
+        findIter=storeValues.find(parent);
+        if(findIter==storeValues.end()){
+            int i = seenElement.size()-1;
+            seenElement.erase(seenElement.begin()+i);
+        }
+        else{
+            value=findIter->second;
+            childernSize=value.size();
+            int count = printingIndex(value,temp);
+            if(count==-1){
+                int i = seenElement.size()-1;
+                seenElement.erase(seenElement.begin()+i);
+            }
+            else{
+                seenElement.push_back(temp);
+                int size=seenElement.size();
+                unordered_map<string,int>::iterator it;
+                it=countNodesForBFS.find(temp);
+                if(it==countNodesForBFS.end()){
+                    countNodesForBFS[temp]++;
+                }
+                else
+                    temp+="*";
+
+                for(int index=1;index<=size-1;index++)
+                    cout<<" ";
+                cout<<temp;
+                i++;
+            }
+            cout<<endl;
+        }
+        parent=seenElement.at(seenElement.size()-1);
+    }
     cout<<endl;
 }
 
@@ -133,10 +171,9 @@ int main(){
 		cout<<"\nThe file is not present";
         return 0;
 	}
-	else{
-		while(getline(myFile,line)){
-		}
-	}
+	else
+		(getline(myFile,line));
+	
 	
 	/* Adding element to the vector*/
 	vector<string>myString;
