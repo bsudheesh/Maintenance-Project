@@ -4,9 +4,10 @@
 #include<queue>
 #include<fstream>
 using namespace std;
-unordered_map<string,vector<string> > storeValues;
-vector<string> allNodes;
-queue<string>myQueue;
+unordered_map<string,vector<string> > storeValues; //stores all the vertices going from a particular node 
+vector<string> allNodes; //stores all the nodes 
+unordered_map<string,int> countNodesForBFS; //checks to see if a node is present for putting *
+
 
 int getElementIndex(string transaction){
     int count=0;
@@ -16,6 +17,19 @@ int getElementIndex(string transaction){
     }
     return count;
 
+}
+
+int getIndexToDelete(vector<string> myVector,string str){
+    int index=0;
+    for(int i=0;i<myVector.size();i++){
+        if(myVector.at(i)==str){
+            index=i;
+            break;
+
+        }
+            
+    }
+    return index;
 }
 
 void printAllPathsUtil(string transaction,string defective,bool visited[],vector<string> path,int pathIndex){
@@ -50,6 +64,47 @@ void printAllPathsUtil(string transaction,string defective,bool visited[],vector
     visited[count]=false;
 }
 
+void printAllPathsToExplosion(string transaction,string defective,bool visited[],vector<string> &path,int pathIndex,vector<string> myVector){
+    if(myVector.size()!=0){
+        int count = getElementIndex(transaction);
+        visited[count]=true;
+        string tem=transaction;
+        unordered_map<string,int>::iterator it;
+        it=countNodesForBFS.find(transaction);
+        if(it==countNodesForBFS.end()){
+            path.insert(path.begin()+pathIndex,tem);
+            countNodesForBFS[transaction]++;
+        }
+        else{
+            tem+='*';
+            path.insert(path.begin()+pathIndex,tem);
+        }
+            
+        pathIndex++;
+        vector<string> first;
+        unordered_map<string,vector<string> >::iterator iter;
+        int index=getIndexToDelete(myVector,transaction);
+        iter=storeValues.find(transaction);
+        if(iter!=storeValues.end()){
+            first=iter->second;
+            myVector.erase(myVector.begin()+index);
+            for(int i=0;i<first.size();i++){
+                int getCount=getElementIndex( first.at(i));
+                myVector.push_back(first.at(i));
+                if(!visited[getCount]){
+                    printAllPathsToExplosion(first.at(i),defective,visited,path,pathIndex,myVector);
+                }
+            }
+        }
+        else{
+            
+            myVector.erase(myVector.begin()+index);
+        }
+        visited[count]=false;
+    }
+
+}
+
 void printAllPaths(string transaction,string defective, int size){
     //cout<<"\nFunction called with transaction : "<<transaction<<" defective node : "<<defective<<" and size : "<<size<<endl;
     bool visited[size];
@@ -59,6 +114,16 @@ void printAllPaths(string transaction,string defective, int size){
     vector<string> path;
     int pathIndex=0;
     printAllPathsUtil(transaction,defective,visited,path,pathIndex);
+    cout<<"\nThe path from transaction to explosion is "<<endl;
+    unordered_map<string,vector<string> >::iterator iter;
+    iter=storeValues.find(transaction);
+    vector<string> value = iter->second;
+    printAllPathsToExplosion(transaction,defective,visited,path,pathIndex,value);
+    for(int i=0;i<path.size();i++)
+        cout<<path.at(i)<<" ";
+    cout<<endl;
+
+
     
 
 
@@ -231,22 +296,60 @@ int main(){
     	cout<<endl;
     }
     cout<<endl; 
-    //myQueue.push(transaction);
-    vector<string>firstVector;
-    unordered_map<string,vector<string> >::iterator i1;
-    i1=storeValues.find(transaction);
-    firstVector=i1->second;
-    for(int i=0;i<firstVector.size();i++)
-        myQueue.push(firstVector.at(i));
-    string parent=transaction;
-
+    
     cout<<"\nThe paths from transaction to the defective node is \n";
     printAllPaths(transaction,defective,allNodes.size());
-    //printAllPaths(defective,transaction,parent);
-    /* Finding parth from the transition node to the defective node */
+
+    /* Printing the unique modules */
+    cout<<"\nThe unique modules are : ";
+    for(int i=0;i<allNodes.size();i++){
+        if(allNodes.at(i) == defective || allNodes.at(i) == transaction){
+            //do nothing
+        }
+        else
+            cout<<allNodes.at(i)<<" ";
+    }
+    cout<<endl;
+
+    /* Finding the explosion part */
+
 
     
     cout<<endl;
     return 0;
 	
 }
+
+
+/*
+Extra things 
+
+void printAllPaths(string defective,string transaction, string currentPath){
+    if(!myQueue.empty()){
+        string str = myQueue.front();
+        myQueue.pop();
+        string a=currentPath;
+        currentPath=currentPath+" "+str;
+        unordered_map<string,vector<string> >::iterator it;
+        it=storeValues.find(str);
+        if(it==storeValues.end())
+            return;
+        vector<string> temp=it->second;
+        for(int i=0;i<temp.size();i++){
+            if(temp.at(i) == defective){
+                currentPath=currentPath+" "+defective;
+                cout<<currentPath<<endl;
+                currentPath="";
+                currentPath=transaction;
+                printAllPaths(defective,transaction,currentPath);
+                return;
+            }
+        }
+        currentPath=a;
+        for(int i=0;i<temp.size();i++)
+            myQueue.push(temp.at(i));
+        printAllPaths(defective,transaction,currentPath);
+    }
+    
+}
+*/
