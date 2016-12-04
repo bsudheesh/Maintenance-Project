@@ -7,8 +7,14 @@ using namespace std;
 unordered_map<string,vector<string> > storeValues; //stores all the vertices going from a particular node 
 vector<string> allNodes; //stores all the nodes 
 unordered_map<string,int> countNodesForBFS; //checks to see if a node is present for putting *
+vector<string>myString; //stores the input from the file
 
 
+/**
+    This function is used to see if the element is present in the vector or not.
+    Pre Condition: myVector and transaction are valid.
+    Post Condition: If element found return the index, else return 0.
+*/
 int getElementIndex(vector<string> myVector,string transaction){
     int count=0;
     for(int i=0;i<myVector.size();i++){
@@ -21,7 +27,13 @@ int getElementIndex(vector<string> myVector,string transaction){
 
 }
 
+/**
+    Similar to getElementIndex, but returns -1 for Element not found. 
+    Deleting from index 0 may result in unwanted actions.
+    Pre Condition: myVector and transaction are valid.
+    Post Condition: If element found return the index, else return -1.
 
+*/
 int printingIndex(vector<string> myVector,string transaction){
     int count=-1;
     for(int i=0;i<myVector.size();i++){
@@ -34,63 +46,101 @@ int printingIndex(vector<string> myVector,string transaction){
 
 }
 
+/**
+    Prints all the path to defective node. It takes the node at current, defective node, and a boolean
+    values. Boolean values is used to check if the node has been visited before. This checks if a cycle is present in graph.
+    path is the path from the transaction to defective node. pathIndex is used to add the node at proper Index.
+    The main idea here is to do a Depth First Traversal. We keep storing all the visited nodes. 
+    If the transaction is the destination node, we print the value are vector path,
 
+    Precondition: The arguments are valid.
+    Postcondition: The path is printed from the source to the defective node.
+*/
 
 void printAllPathsUtil(string transaction,string defective,bool visited[],vector<string> path,int pathIndex){
-    int count = getElementIndex(allNodes,transaction);
-    
-    visited[count]=true;
-    
-    path.insert(path.begin()+pathIndex,transaction);
-    //path[pathIndex]=transaction;
+    /*
+    A boolean array is created to the size of all unique nodes from the file.
+    Each index is marked with a unique node. Count returns the position of the transaction node in the vector.
+    The element is marked visited by marking the boolean value of that index as true
+    */
+    int count = getElementIndex(allNodes,transaction); //returns the index
+    visited[count]=true; //mark node visited
+    path.insert(path.begin()+pathIndex,transaction); //store the path at pathIndex
     pathIndex++;
-    if(transaction==defective){
+    if(transaction==defective){ //when we have reached the defective node
+        //Pring the path
         for(int i=0;i<pathIndex;i++){
             cout<<path.at(i)<<" ";
         }
         cout<<endl;
     }
     else{
-        vector<string> first;
+        //if the destination is not reached, get all the children of the transaction node 
+        vector<string> children; //stores the childredn
         unordered_map<string,vector<string> >::iterator iter;
         iter=storeValues.find(transaction);
+        //If the element has no children, this will not be executed.
         if(iter!=storeValues.end()){
-            first=iter->second;
-            for(int i=0;i<first.size();i++){
-                int getCount=getElementIndex(allNodes, first.at(i));
+            children=iter->second; //store the children of the transaction node
+            for(int i=0;i<children.size();i++){
+                int getCount=getElementIndex(allNodes, children.at(i)); //gets the index of the children
+                //if the children is not visited, call the function again with transaction node being the children
                 if(!visited[getCount]){
-                    printAllPathsUtil(first.at(i),defective,visited,path,pathIndex);
+                    printAllPathsUtil(children.at(i),defective,visited,path,pathIndex);
                 }
             }
         }
     }
-    pathIndex--;
-    visited[count]=false;
+    pathIndex--; //decrease the path Index
+    visited[count]=false; //mark the node unVisited
 }
 
+/**
+    Prints all the path to defective node. It takes the node at current, defective node, and a boolean
+    values. Boolean values is used to check if the node has been visited before. This checks if a cycle is present in graph.
+    path is the path from the transaction to defective node. myVector is used to store nodes.
+    The main idea here is to do a Depth First Traversal. We keep storing all the visited nodes. 
+    The path is changed at the end of the function call.
+
+    Precondition: The arguments are valid.
+    Postcondition: The path is changed with all the nodes from the transaction to defective node.
+
+*/
+
 void printAllPathsToExplosion(string transaction,string defective,bool visited[],vector<string> &path,vector<string> myVector){
+    /*
+        If the size of myVector is 0, we know that we have all paths possible from transaction to the defective node.
+    */
     if(myVector.size()!=0){
-        int count = getElementIndex(allNodes,transaction);
-        visited[count]=true;
+        /*
+            The main idea here is to store elements in myVector.
+            First get the index of the transaction node.
+            Find to see if the transaction node has children. If it doesn't, delete it
+            If it has children, delete the transaction node and add it's childrent to myVector.
+
+        */
+
+        int count = getElementIndex(allNodes,transaction); //get the element index
+        visited[count]=true; //mark that as visited
         string tem=transaction;
-        path.push_back(tem);
-        vector<string> first;
+        path.push_back(tem); //store the current element in path
+        vector<string> children; //stores children of the current transaction node
         unordered_map<string,vector<string> >::iterator iter;
         int index=getElementIndex(myVector,transaction);
         iter=storeValues.find(transaction);
         if(iter!=storeValues.end()){
-            first=iter->second;
+            children=iter->second;
+            //delete the node currently begin under consideration, aka, the transaction node
             myVector.erase(myVector.begin()+index);
-            for(int i=0;i<first.size();i++){
-                int getCount=getElementIndex(allNodes, first.at(i));
-                myVector.push_back(first.at(i));
+            for(int i=0;i<children.size();i++){
+                int getCount=getElementIndex(allNodes, children.at(i)); //add the children in the transaction node
+                myVector.push_back(children.at(i));
                 if(!visited[getCount]){
-                    printAllPathsToExplosion(first.at(i),defective,visited,path,myVector);
+                    printAllPathsToExplosion(children.at(i),defective,visited,path,myVector);
                 }
             }
         }
         else{
-            
             myVector.erase(myVector.begin()+index);
         }
         visited[count]=false;
@@ -98,36 +148,36 @@ void printAllPathsToExplosion(string transaction,string defective,bool visited[]
 
 }
 
-void printAllPaths(string transaction,string defective, int size){
-    //cout<<"\nFunction called with transaction : "<<transaction<<" defective node : "<<defective<<" and size : "<<size<<endl;
-    bool visited[size];
-    for(int i=0;i<size;i++)
-        visited[i]=false; 
-    //string path[size];
-    vector<string> path;
-    int pathIndex=0;
-    printAllPathsUtil(transaction,defective,visited,path,pathIndex);
-    cout<<"\nThe path from transaction to explosion is "<<endl;
-    unordered_map<string,vector<string> >::iterator iter;
-    iter=storeValues.find(transaction);
-    vector<string> value = iter->second;
-    printAllPathsToExplosion(transaction,defective,visited,path,value);
+/**
+    This prints the explosion path. It takes the path and the current node as argument.
 
-    //printing in proper order
+    Pre Condition: The input is valid.
+    Post Condition: The path is printed.
+*/
+void printExplosion(vector<string> path,string transaction){
+    /*
+        The idea here is to iterate all the element in the vector path.
+        The idea is to have a parent variable. It is used to check if the current transaction node
+        is a children of it. If if a childern, we provide the proper tabbing and add the children to vector.
+        If it's not a childern, we delete the parent from the vector and change the parent variable.
+        We do this until we have found it's parent.
+        If there is no children of the transaction node, delete the last element from vector.
+        The parent is changed at every iteration.
+        The repeated elements are tracked by using countNodesForBST hashmap. If element is already seen, we add *
+    */
     vector<string> seenElement;
     seenElement.push_back(transaction);
     string parent=transaction;
     cout<<transaction<<endl;
-
-
     int childernSize;
     int i=1;
     while(i<path.size()){
         string temp = path.at(i);
         vector<string> value;
         unordered_map<string,vector<string> >::iterator findIter;
-        findIter=storeValues.find(parent);
+        findIter=storeValues.find(parent); //finding the children.
         if(findIter==storeValues.end()){
+            //if it has no childern, delete the last element.
             int i = seenElement.size()-1;
             seenElement.erase(seenElement.begin()+i);
         }
@@ -135,11 +185,13 @@ void printAllPaths(string transaction,string defective, int size){
             value=findIter->second;
             childernSize=value.size();
             int count = printingIndex(value,temp);
+            //check if the current node is a children of it's parent. If not, delete the last element
             if(count==-1){
                 int i = seenElement.size()-1;
                 seenElement.erase(seenElement.begin()+i);
             }
             else{
+                //if child, add the children to hashmap and provide proper tabbing
                 seenElement.push_back(temp);
                 int size=seenElement.size();
                 unordered_map<string,int>::iterator it;
@@ -157,14 +209,42 @@ void printAllPaths(string transaction,string defective, int size){
             }
             cout<<endl;
         }
-        parent=seenElement.at(seenElement.size()-1);
+        parent=seenElement.at(seenElement.size()-1); //changing parent
     }
     cout<<endl;
 }
 
+/**
+    This is a utility function that is used to print the all possible path from the origin to source
+    and the explosion path. size is the count of unique nodes. 
+
+    Precondition: The inputs are valid.
+    Postcondition: All possible and the explosion paths are printed.
+*/
+void printAllPaths(string transaction,string defective, int size){
+    bool visited[size]; //used to track the visited node. All are false at first,
+    for(int i=0;i<size;i++)
+        visited[i]=false; 
+    vector<string> path;
+    int pathIndex=0;
+    printAllPathsUtil(transaction,defective,visited,path,pathIndex); //prints all possible path
+    cout<<"\nThe path from transaction to explosion is "<<endl;
+    /*
+        This code below is used to print the explosion path. We first store the children of the transaction node
+        and add it to the vector.
+    */
+    unordered_map<string,vector<string> >::iterator iter;
+    iter=storeValues.find(transaction);
+    vector<string> value = iter->second;
+    printAllPathsToExplosion(transaction,defective,visited,path,value); //path has all the way of path
+    printExplosion(path,transaction); //prints the path
+}
+
 int main(){
-	string line;
-    int uniqueNodes=0;
+	string line; //stores the input from the file
+    /*
+        Opening file. Return if no file is found.
+    */
 
 	ifstream myFile ("imp.txt");
 	if(!myFile){
@@ -176,12 +256,11 @@ int main(){
 	
 	
 	/* Adding element to the vector*/
-	vector<string>myString;
 	string temp="";
-	
+	string tempLine,defective="",transaction=""; //tempLine stores the line without 
 
 	/* This makes sure that the input from the file is in proper format. Checking additional spaces after ; */
-	string tempLine,defective="",transaction="";
+	
 	bool semicolon=false,space=false;
 	for(int i=0;i<line.length();i++){
 		if(line[i]==';'){
@@ -215,10 +294,10 @@ int main(){
 	}
 
 	line="";
-	line=tempLine;
-	/* storing the element in hashmao for the modules*/
-	
+	line=tempLine; //line has proper orientation by removing extra spaces between two nodes
 
+
+	/* stores all the nodes in vector myString*/
 	for(int i=0;i<line.length();i++){
 		if(line[i]==';'){
 			myString.push_back(temp);
@@ -228,11 +307,14 @@ int main(){
 			temp+=line[i];
 	}
 	myString.push_back(temp);
-	unordered_map<string,int>myMap;
+
+
+	unordered_map<string,int>myMap;//myMap stores all the nodes that come in the second Place
 	bool answer=true;
     int index=0;
-    vector<string> unique;
-    vector<string> first;
+    vector<string> unique; //stores all the transactions
+    vector<string> first; //stores all the first nodes
+    //mymap and first are used to find the unique modules.
     while(answer){
         string str=myString.at(index);
         bool space=false;
@@ -250,9 +332,24 @@ int main(){
             else
                 secondLetter+=str[i];
         }
+        //firstLetter stores the first node and the secondLetter stores the second node
         unordered_map<string,vector<string> >::iterator findIter;
         findIter=storeValues.find(firstLetter);
         vector<string> value;
+        /*
+            storeValues is a hashmap used to show the user interface. It would look like
+            Z : B1 F 
+            Y : X 
+            X : P 
+            C : F 
+            Q : C D 
+            A : B C D 
+            D : X Y Z 
+            B : X Y Z 
+
+            the key is a node and it's value are all the nodes possible to be visited from the key node
+
+        */
         if(findIter==storeValues.end()){
         	value.push_back(secondLetter);
         }
@@ -260,6 +357,11 @@ int main(){
         	value=findIter->second;
         	value.push_back(secondLetter);
         }
+        /*
+            all Nodes stores all the unique modules.
+            firstWord and secondWord are used to see that the element doesn't gets added again.
+            They are added to allNodes if firstLetter and SecondLetter is/are not found.
+        */
         bool firstWord=false,secondWord=false;
         for(int i=0;i<allNodes.size();i++){
             if(allNodes.at(i) == firstLetter)
@@ -271,15 +373,16 @@ int main(){
             allNodes.push_back(firstLetter);
         if(!secondWord)
             allNodes.push_back(secondLetter);
-        storeValues[firstLetter]=value;
-        first.push_back(firstLetter);
-        myMap[secondLetter]=1;
+        storeValues[firstLetter]=value; //storing the value in the hashmap
+        first.push_back(firstLetter); //storing the first letter in the vector
+        myMap[secondLetter]=1; //storing the second letter in the hashmap
         index++;
     }
     index++;
+    //After we encounter **, the first node is the defective node and the second is transacation node
     defective=myString.at(index++);
     transaction=myString.at(index);
-    unordered_map<string,int>uniqueMap;
+    unordered_map<string,int>uniqueMap; //this hashmap stores the unique modules. It is used to avoid duplicate nodes
     for(int i=0;i<first.size();i++){
         unordered_map<string,int>::iterator finding;
         finding=myMap.find(first.at(i));
@@ -287,25 +390,28 @@ int main(){
             uniqueMap[first.at(i)]++;
         }
     }
-    uniqueNodes=myMap.size()+first.size();
     unordered_map<string,int>::iterator iter;
     cout<<"\nThe transaction are : ";
-
-    
-
     for(iter=uniqueMap.begin();iter!=uniqueMap.end();++iter){
-        unique.push_back(iter->first);
+        unique.push_back(iter->first); 
         cout<<iter->first<<" ";
     }
 
     cout<<endl;
     cout<<"\nThe defective node is : "<<defective<<endl;
         
-    /* Unique has the unique transaction */
+    /* Printing the unique modules */
+     cout<<"\nThe unique modules are : ";
+    for(int i=0;i<allNodes.size();i++){
+        if(allNodes.at(i) == defective || allNodes.at(i) == transaction){ // not printing the trascation and defective node
+            //do nothing
+        }
+        else
+            cout<<allNodes.at(i)<<" ";
+    }
+    cout<<endl;
 
-
-    /* Now finding the path to the defective node and for the explosion*/
-    vector<string>secondNodes;
+    /* Showing the user Interface*/
     cout<<"\nThe User Interface is"<<endl;
     unordered_map<string,vector<string> >:: iterator i;
     for(i=storeValues.begin();i!=storeValues.end();i++){
@@ -316,18 +422,9 @@ int main(){
     	cout<<endl;
     }
     cout<<endl; 
+    /* Printing all posible path from explosion to transaction and the explosion path*/
     cout<<"\nThe paths from transaction to the defective node is \n";
-    printAllPaths(transaction,defective,allNodes.size());
-    /* Printing the unique modules */
-    cout<<"\nThe unique modules are : ";
-    for(int i=0;i<allNodes.size();i++){
-        if(allNodes.at(i) == defective || allNodes.at(i) == transaction){
-            //do nothing
-        }
-        else
-            cout<<allNodes.at(i)<<" ";
-    }
-    cout<<endl;
+    printAllPaths(transaction,defective,allNodes.size());//this function will also show the explosion path
     return 0;
 	
 }
