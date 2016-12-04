@@ -72,12 +72,12 @@ void printAllPathsToExplosion(string transaction,string defective,bool visited[]
         unordered_map<string,int>::iterator it;
         it=countNodesForBFS.find(transaction);
         if(it==countNodesForBFS.end()){
-            path.insert(path.begin()+pathIndex,tem);
+            path.push_back(tem);
             countNodesForBFS[transaction]++;
         }
         else{
             tem+='*';
-            path.insert(path.begin()+pathIndex,tem);
+            path.push_back(tem);
         }
             
         pathIndex++;
@@ -122,15 +122,7 @@ void printAllPaths(string transaction,string defective, int size){
     for(int i=0;i<path.size();i++)
         cout<<path.at(i)<<" ";
     cout<<endl;
-
-
-    
-
-
-
 }
-
-
 
 int main(){
 	string line;
@@ -160,8 +152,6 @@ int main(){
 			tempLine+=line[i];
 
 		}
-			
-
 		else if(line[i]==' '){
             if(space){
                 //do nothing
@@ -201,8 +191,6 @@ int main(){
 			temp+=line[i];
 	}
 	myString.push_back(temp);
-
-
 	unordered_map<string,int>myMap;
 	bool answer=true;
     int index=0;
@@ -218,16 +206,12 @@ int main(){
             if(str[i]==' ' || !space){
                 if(str[i]==' '){
                     space=true;
-                    //do nothing
                 }
                 else
                     firstLetter+=str[i];
-                
             }
             else
                 secondLetter+=str[i];
-            
-            
         }
         unordered_map<string,vector<string> >::iterator findIter;
         findIter=storeValues.find(firstLetter);
@@ -288,7 +272,6 @@ int main(){
     cout<<"\nThe User Interface is"<<endl;
     unordered_map<string,vector<string> >:: iterator i;
     for(i=storeValues.begin();i!=storeValues.end();i++){
-
     	cout<<i->first<<" : ";
     	vector<string> val=i->second;
     	for(int ii=0;ii<val.size();ii++)
@@ -296,10 +279,8 @@ int main(){
     	cout<<endl;
     }
     cout<<endl; 
-    
     cout<<"\nThe paths from transaction to the defective node is \n";
     printAllPaths(transaction,defective,allNodes.size());
-
     /* Printing the unique modules */
     cout<<"\nThe unique modules are : ";
     for(int i=0;i<allNodes.size();i++){
@@ -310,46 +291,6 @@ int main(){
             cout<<allNodes.at(i)<<" ";
     }
     cout<<endl;
-
-    /* Finding the explosion part */
-
-
-    
-    cout<<endl;
     return 0;
 	
 }
-
-
-/*
-Extra things 
-
-void printAllPaths(string defective,string transaction, string currentPath){
-    if(!myQueue.empty()){
-        string str = myQueue.front();
-        myQueue.pop();
-        string a=currentPath;
-        currentPath=currentPath+" "+str;
-        unordered_map<string,vector<string> >::iterator it;
-        it=storeValues.find(str);
-        if(it==storeValues.end())
-            return;
-        vector<string> temp=it->second;
-        for(int i=0;i<temp.size();i++){
-            if(temp.at(i) == defective){
-                currentPath=currentPath+" "+defective;
-                cout<<currentPath<<endl;
-                currentPath="";
-                currentPath=transaction;
-                printAllPaths(defective,transaction,currentPath);
-                return;
-            }
-        }
-        currentPath=a;
-        for(int i=0;i<temp.size();i++)
-            myQueue.push(temp.at(i));
-        printAllPaths(defective,transaction,currentPath);
-    }
-    
-}
-*/
