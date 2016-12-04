@@ -250,6 +250,7 @@ int main(){
     unordered_map<string,int>myMap;//myMap stores all the nodes that come in the second Place
     bool answer=true;
     int index=0;
+    unordered_map<string,int>uniqueMap; //this hashmap stores the unique modules. It is used to avoid duplicate nodes
 
 
     /*
@@ -263,6 +264,30 @@ int main(){
 	}
 	else
 		(getline(myFile,line));
+
+    /* Testing the following conditions
+    1) If the file is empty.
+    2) If the file doesn't have proper amount of information to make the user interface
+    3) File doesn't have two nodes in any transaction.
+    4) The file has no **
+    5) No defective or transaction node is provided.
+    6) If the transaction or the defective not is not present in the graph.
+    */
+    if(line.length()==0){
+        cout<<"\nThe file is empty!! Can't get data\n";
+        return 0;
+    }
+    else if(line.length()<3){
+        cout<<"\nInvalid data! Problem with number of nodes\n";
+        return 0;
+    }
+    else if(line.length()<6){
+        cout<<"\nDefective and transaction node not definded\n";
+        return 0;
+    }
+    else if(line.length()<8){
+        cout<<"\nRequired information not provided\n";
+    }
 	
     /* This makes sure that the input from the file is in proper format. Checking additional spaces after ; */
 	
@@ -311,6 +336,10 @@ int main(){
 	}
 	myString.push_back(temp);
     while(answer){
+        if(index>=myString.size()){
+            cout<<"\nError! No end of file specified. No defective and transaction node found.";
+            return 0;
+        }
         string str=myString.at(index);
         bool space=false;
         string firstLetter,secondLetter;
@@ -326,6 +355,10 @@ int main(){
             }
             else
                 secondLetter+=str[i];
+        }
+        if(firstLetter=="" || secondLetter==""){
+            cout<<"\nEither the first node, the second node value is empty or the end of file is not provided";
+            return 0;
         }
         //firstLetter stores the first node and the secondLetter stores the second node
         unordered_map<string,vector<string> >::iterator findIter;
@@ -377,7 +410,10 @@ int main(){
     //After we encounter **, the first node is the defective node and the second is transacation node
     defective=myString.at(index++);
     transaction=myString.at(index);
-    unordered_map<string,int>uniqueMap; //this hashmap stores the unique modules. It is used to avoid duplicate nodes
+    if(defective=="" || transaction==""){
+        cout<<"\nThe defective or transaction node is not provided\n";
+        return 0;
+    }
     for(int i=0;i<first.size();i++){
         unordered_map<string,int>::iterator finding;
         finding=myMap.find(first.at(i));
@@ -417,6 +453,25 @@ int main(){
     	cout<<endl;
     }
     cout<<endl; 
+
+    /*
+        Checking to see if the defective or transaction is present in the graph.
+        If not abort.
+    */
+
+    int checkIndex=printingIndex(allNodes,defective);
+    if(checkIndex==-1){
+        cout<<"\nError!! The defective node is not present in the graph";
+        return 0;
+    }
+    checkIndex=printingIndex(allNodes,transaction);
+    if(checkIndex==-1){
+        cout<<"\nError!! The transaction node is not present in the graph";
+        return 0;
+    }
+
+
+
     /* Printing all posible path from explosion to transaction and the explosion path*/
     cout<<"\nThe paths from transaction to the defective node is \n";
     printAllPaths(transaction,defective,allNodes.size());//this function will also show the explosion path
