@@ -434,7 +434,14 @@ int main(){
     /* Printing the unique modules */
      cout<<"\nThe unique modules are : ";
     for(int i=0;i<allNodes.size();i++){
-        if(allNodes.at(i) == defective || allNodes.at(i) == transaction){ // not printing the trascation and defective node
+        bool tempBool = false;
+        for(int j=0;j<unique.size();j++){
+            if(allNodes.at(i) == unique.at(j)){
+                tempBool=true;
+                break;
+            }
+        }
+        if(tempBool){
             //do nothing
         }
         else
